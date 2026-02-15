@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StowIt — Contact</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #12121a;
+      --accent: #2F8F8C;
+      --text-bright: rgba(255, 255, 255, 0.9);
+      --text-primary: rgba(255, 255, 255, 0.75);
+      --text-secondary: rgba(255, 255, 255, 0.5);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+    h1 {
+      color: var(--text-bright);
+      font-size: 2rem;
+      margin-bottom: 32px;
+    }
+    h2 {
+      color: var(--text-bright);
+      font-size: 1.2rem;
+      margin-top: 28px;
+      margin-bottom: 8px;
+    }
+    p {
+      margin-bottom: 16px;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 32px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .contact-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 28px;
+      margin-top: 24px;
+    }
+    .contact-card p {
+      margin-bottom: 10px;
+    }
+    .contact-card p:last-child {
+      margin-bottom: 0;
+    }
+    .label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back" href="index.html">&larr; Back to StowIt</a>
+    <h1>Contact</h1>
+    <p>Have questions, feedback, or need support? Reach out — we'd love to hear from you.</p>
+
+    <div class="contact-card">
+      <p><span class="label">Developer</span></p>
+      <p><strong>Mark Kuykendall</strong></p>
+
+      <p style="margin-top: 18px;"><span class="label">Email</span></p>
+      <p><a href="mailto:mark@acornkc.com">mark@acornkc.com</a></p>
+
+      <p style="margin-top: 18px;"><span class="label">Phone</span></p>
+      <p><a href="tel:+18167699176">(816) 769-9176</a></p>
+    </div>
+
+    <h2>Bug Reports &amp; Feature Requests</h2>
+    <p>For bugs or feature ideas, open an issue on <a href="https://github.com/zamfir70/StowIt/issues">GitHub</a>.</p>
+  </div>
+</body>
+</html>
