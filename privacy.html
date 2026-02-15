@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StowIt — Privacy Policy</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #12121a;
+      --accent: #2F8F8C;
+      --text-bright: rgba(255, 255, 255, 0.9);
+      --text-primary: rgba(255, 255, 255, 0.75);
+      --text-secondary: rgba(255, 255, 255, 0.5);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+    h1 {
+      color: var(--text-bright);
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .updated {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+    }
+    h2 {
+      color: var(--text-bright);
+      font-size: 1.2rem;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+    p, ul {
+      margin-bottom: 16px;
+    }
+    ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 32px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back" href="index.html">&larr; Back to StowIt</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: February 15, 2026</p>
+
+    <h2>Summary</h2>
+    <p>StowIt is a local-first application. Your data stays on your device. We do not collect, transmit, or store any personal information.</p>
+
+    <h2>Data Storage</h2>
+    <p>All data created by StowIt is stored locally on your computer:</p>
+    <ul>
+      <li><strong>Drop stack</strong> — stored as a JSON file in your local app data directory</li>
+      <li><strong>Session history</strong> — stored as local files in your app data directory</li>
+      <li><strong>Configuration</strong> — stored as a JSON file in your local app data directory</li>
+    </ul>
+    <p>No data is sent to any server, cloud service, or third party by default.</p>
+
+    <h2>Network Features</h2>
+    <p>StowIt includes optional network features that are disabled by default:</p>
+    <ul>
+      <li><strong>LAN Zones</strong> — when enabled, discovers other StowIt instances on your local network using mDNS. Data shared to a zone is transmitted directly between devices on your local network. No data passes through external servers.</li>
+      <li><strong>REST API</strong> — when enabled, runs a local HTTP server accessible only on your machine or local network. Protected by a bearer token you control.</li>
+      <li><strong>Integrations</strong> — when configured, StowIt can send drop data to services you specify (webhooks, Slack, Discord, Obsidian). Data is sent only to URLs you explicitly configure.</li>
+    </ul>
+
+    <h2>QR Code Transfer</h2>
+    <p>The QR code feature runs a temporary local HTTP server on your device. The QR code points to your local IP address. No data is uploaded to any external service.</p>
+
+    <h2>Clipboard Access</h2>
+    <p>When clipboard capture is enabled, StowIt monitors your system clipboard to add copied items to your drop stack. This data never leaves your device unless you explicitly share it via Zones or Integrations.</p>
+
+    <h2>Analytics and Tracking</h2>
+    <p>StowIt does not include any analytics, telemetry, tracking pixels, or third-party SDKs. We do not collect usage data of any kind.</p>
+
+    <h2>License Verification</h2>
+    <p>Pro license verification is performed entirely offline using cryptographic validation. No network request is made to verify your license.</p>
+
+    <h2>Third-Party Services</h2>
+    <p>StowIt does not integrate with any third-party services unless you explicitly configure them in Settings. The application makes zero network requests by default.</p>
+
+    <h2>Children's Privacy</h2>
+    <p>StowIt does not collect any personal information from anyone, including children under 13.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>If we update this privacy policy, the changes will be posted on this page with an updated date.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy? Contact us at <a href="mailto:privacy@nxtai.dev">privacy@nxtai.dev</a>.</p>
+  </div>
+</body>
+</html>

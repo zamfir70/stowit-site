@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StowIt — Universal Drop Buffer</title>
+  <meta name="description" content="The ephemeral clipboard overlay for power users. Drop anything, pin what matters, everything expires.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg-card-hover: rgba(255, 255, 255, 0.07);
+      --bg-nav: rgba(24, 24, 32, 0.95);
+      --accent: #2F8F8C;
+      --accent-hover: #3FA6A2;
+      --green: #6be06b;
+      --text-bright: rgba(255, 255, 255, 0.9);
+      --text-primary: rgba(255, 255, 255, 0.75);
+      --text-secondary: rgba(255, 255, 255, 0.5);
+      --text-muted: rgba(255, 255, 255, 0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      background: var(--bg-nav);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 100;
+      padding: 14px 0;
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-bright);
+      letter-spacing: 0.5px;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      font-size: 14px;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text-bright); }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 80px 0 60px;
+    }
+
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--text-bright);
+      line-height: 1.2;
+      margin-bottom: 16px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.15s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-bright);
+    }
+
+    /* ── App Preview ── */
+    .app-preview {
+      max-width: 320px;
+      margin: 40px auto 0;
+      background: rgba(18, 18, 26, 0.92);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      font-size: 12px;
+    }
+
+    .preview-handle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(24, 24, 32, 0.95);
+    }
+
+    .preview-handle span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .preview-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .preview-dots span {
+      width: 8px;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+    }
+
+    .preview-body { padding: 6px; }
+
+    .preview-item {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+    }
+
+    .preview-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .preview-item-kind {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .preview-item-timer {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .preview-item-text {
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .preview-item.pinned {
+      border-left: 3px solid rgba(100, 180, 255, 0.6);
+    }
+
+    .preview-item.pinned .preview-item-timer {
+      color: rgba(100, 180, 255, 0.6);
+    }
+
+    /* ── Section ── */
+    section {
+      padding: 72px 0;
+    }
+
+    section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-bright);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    section .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: 48px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── Features ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .badge-pro {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── How It Works ── */
+    .steps {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .step {
+      text-align: center;
+      flex: 1;
+      min-width: 200px;
+      max-width: 280px;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .step h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 6px;
+    }
+
+    .step p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Pricing ── */
+    .pricing-grid {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .pricing-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 32px 28px;
+      flex: 1;
+      min-width: 260px;
+      max-width: 360px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      position: relative;
+    }
+
+    .pricing-card.featured::before {
+      content: 'MOST POPULAR';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .pricing-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+    }
+
+    .pricing-price {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+    }
+
+    .pricing-price span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .pricing-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 24px;
+    }
+
+    .pricing-features li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 5px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .pricing-features li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .pricing-features li.disabled {
+      color: var(--text-muted);
+    }
+
+    .pricing-features li.disabled::before {
+      background: var(--text-muted);
+    }
+
+    .pricing-card .btn {
+      display: block;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* ── Download ── */
+    .download-grid {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .download-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 14px 24px;
+      color: var(--text-primary);
+      transition: all 0.15s;
+      min-width: 200px;
+    }
+
+    .download-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+      color: var(--text-bright);
+    }
+
+    .download-btn .dl-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .download-btn .dl-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .download-btn .dl-detail {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .version-note {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    footer a {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .hero p { font-size: 15px; }
+      section h2 { font-size: 22px; }
+      section { padding: 48px 0; }
+      .hero { padding: 48px 0 36px; }
+      .steps { flex-direction: column; align-items: center; }
+      .pricing-grid { flex-direction: column; align-items: center; }
+      .pricing-card { max-width: 100%; }
+      .nav-links { gap: 16px; }
+      .nav-links a { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <div class="nav-logo">Stow<span>It</span></div>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#download">Download</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>Drop anything. Pin what matters. Everything expires.</h1>
+      <p>The ephemeral clipboard overlay for power users. A tiny always-on-top window that catches everything you copy, drag, or drop.</p>
+      <div class="hero-buttons">
+        <a href="#download" class="btn btn-primary">Download Free</a>
+        <a href="#pricing" class="btn btn-secondary">See Pro Features</a>
+      </div>
+
+      <!-- App Preview -->
+      <div class="app-preview">
+        <div class="preview-handle">
+          <span>StowIt</span>
+          <div class="preview-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="preview-body">
+          <div class="preview-item pinned">
+            <div class="preview-item-header">
+              <span class="preview-item-kind">Link</span>
+              <span class="preview-item-timer">pinned</span>
+            </div>
+            <div class="preview-item-text">https://github.com/nxtai/stowit</div>
+          </div>
+          <div class="preview-item">
+            <div class="preview-item-header">
+              <span class="preview-item-kind">Text</span>
+              <span class="preview-item-timer">8m 42s</span>
+            </div>
+            <div class="preview-item-text">Design review notes from today's meeting...</div>
+          </div>
+          <div class="preview-item">
+            <div class="preview-item-header">
+              <span class="preview-item-kind">Text</span>
+              <span class="preview-item-timer">3m 15s</span>
+            </div>
+            <div class="preview-item-text">SELECT * FROM users WHERE active = true</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="container">
+      <h2>Everything you need in a drop buffer</h2>
+      <p class="subtitle">StowIt sits on top of everything, ready to catch and hold whatever you throw at it.</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F4CB;</span>
+          <h3>Clipboard Auto-Capture</h3>
+          <p>Anything you copy appears in the stack instantly. No extra steps, no hotkeys needed.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F4E5;</span>
+          <h3>Drag &amp; Drop</h3>
+          <p>Drag files, text snippets, or links directly into the window. Everything gets stashed.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x23F3;</span>
+          <h3>Timed Expiry</h3>
+          <p>Items auto-expire with a visual countdown. Your buffer stays clean without you lifting a finger.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F4CC;</span>
+          <h3>Pin &amp; Persist</h3>
+          <p>Important items? Pin them. They stay until you say otherwise, surviving restarts.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x25A3;</span>
+          <h3>QR Code Sharing</h3>
+          <p>Generate a QR code for any item. Send text or files to your phone instantly.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F4C1;</span>
+          <h3>File Transfer</h3>
+          <p>Drop a file, scan the QR, and it transfers over your local network. No cloud needed.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F4C5;</span>
+          <h3>Session Timeline <span class="badge-pro">PRO</span></h3>
+          <p>Full history of everything you've dropped, copied, and pinned. Searchable across sessions.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F310;</span>
+          <h3>DropZones <span class="badge-pro">PRO</span></h3>
+          <p>Share items with teammates over LAN. Create named zones, discover peers automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" style="background: rgba(255,255,255,0.015);">
+    <div class="container">
+      <h2>Three steps to clipboard freedom</h2>
+      <p class="subtitle">StowIt works silently in the background. Here's the flow.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Drop or Copy</h3>
+          <p>Copy text, drag a file, or paste a link. StowIt catches it all automatically.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Items Stack Up</h3>
+          <p>Each item appears with a countdown timer. Newest on top, oldest fading out.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Pin or Let Go</h3>
+          <p>Pin what matters. Everything else expires gracefully after 10 minutes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="container">
+      <h2>Simple pricing</h2>
+      <p class="subtitle">Start free. Upgrade when you need more.</p>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Free</h3>
+          <div class="pricing-price">$0</div>
+          <div class="pricing-note">Forever free</div>
+          <ul class="pricing-features">
+            <li>5-item stack</li>
+            <li>Clipboard auto-capture</li>
+            <li>Drag &amp; drop</li>
+            <li>QR code sharing</li>
+            <li>File transfer</li>
+            <li>10-minute expiry</li>
+            <li>7-day session history</li>
+            <li class="disabled">Custom themes</li>
+            <li class="disabled">REST API</li>
+            <li class="disabled">DropZones</li>
+            <li class="disabled">Integrations</li>
+          </ul>
+          <a href="#download" class="btn btn-secondary">Download</a>
+        </div>
+        <div class="pricing-card featured">
+          <h3>Pro</h3>
+          <div class="pricing-price">$19 <span>/ lifetime</span></div>
+          <div class="pricing-note">One-time payment, all future updates</div>
+          <ul class="pricing-features">
+            <li>50-item stack</li>
+            <li>Everything in Free</li>
+            <li>Dark &amp; Light themes + custom accents</li>
+            <li>REST API access</li>
+            <li>DropZones (LAN sharing)</li>
+            <li>Integrations (Slack, Discord, webhooks)</li>
+            <li>30-day searchable timeline</li>
+            <li>Predictions &amp; backfill</li>
+            <li>Smart staging queue</li>
+            <li>Window position memory</li>
+          </ul>
+          <a href="#download" class="btn btn-primary">Get Pro</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" style="background: rgba(255,255,255,0.015);">
+    <div class="container">
+      <h2>Download StowIt</h2>
+      <p class="subtitle">Available for Windows, macOS, and Linux.</p>
+      <div class="download-grid">
+        <a href="https://github.com/NXTAI/stowit/releases/latest/download/StowIt_4.1.0_x64-setup.exe" class="download-btn">
+          <span class="dl-icon">&#x1F5B3;</span>
+          <div>
+            <div class="dl-label">Windows</div>
+            <div class="dl-detail">64-bit installer (.exe)</div>
+          </div>
+        </a>
+        <a href="https://github.com/NXTAI/stowit/releases/latest/download/StowIt_4.1.0_aarch64.dmg" class="download-btn">
+          <span class="dl-icon">&#x1F34E;</span>
+          <div>
+            <div class="dl-label">macOS (Apple Silicon)</div>
+            <div class="dl-detail">ARM64 disk image (.dmg)</div>
+          </div>
+        </a>
+        <a href="https://github.com/NXTAI/stowit/releases/latest/download/StowIt_4.1.0_x64.dmg" class="download-btn">
+          <span class="dl-icon">&#x1F34E;</span>
+          <div>
+            <div class="dl-label">macOS (Intel)</div>
+            <div class="dl-detail">x64 disk image (.dmg)</div>
+          </div>
+        </a>
+        <a href="https://github.com/NXTAI/stowit/releases/latest/download/StowIt_4.1.0_amd64.AppImage" class="download-btn">
+          <span class="dl-icon">&#x1F427;</span>
+          <div>
+            <div class="dl-label">Linux (AppImage)</div>
+            <div class="dl-detail">Portable, no install needed</div>
+          </div>
+        </a>
+        <a href="https://github.com/NXTAI/stowit/releases/latest/download/StowIt_4.1.0_amd64.deb" class="download-btn">
+          <span class="dl-icon">&#x1F427;</span>
+          <div>
+            <div class="dl-label">Linux (.deb)</div>
+            <div class="dl-detail">Debian / Ubuntu package</div>
+          </div>
+        </a>
+      </div>
+      <p class="version-note">Current version: 4.1.0 &middot; <a href="https://github.com/NXTAI/stowit/releases">All releases</a></p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 NXTAI. Built with Tauri.</p>
+      <a href="https://github.com/NXTAI/stowit">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>
