@@ -68,10 +68,10 @@
   <div class="container">
     <a class="back" href="index.html">&larr; Back to StowIt</a>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: February 15, 2026</p>
+    <p class="updated">Last updated: February 17, 2026</p>
 
     <h2>Summary</h2>
-    <p>StowIt is a local-first application. Your data stays on your device. We do not collect, transmit, or store any personal information.</p>
+    <p>StowIt is a local-first application. Your data stays on your device unless you enable Cloud Sync. We do not collect analytics, telemetry, or personal information.</p>
 
     <h2>Data Storage</h2>
     <p>All data created by StowIt is stored locally on your computer:</p>
@@ -80,12 +80,25 @@
       <li><strong>Session history</strong> — stored as local files in your app data directory</li>
       <li><strong>Configuration</strong> — stored as a JSON file in your local app data directory</li>
     </ul>
-    <p>No data is sent to any server, cloud service, or third party by default.</p>
+
+    <h2>Cloud Sync</h2>
+    <p>StowIt includes an optional Cloud Sync feature for sharing clipboard items across your devices. When enabled:</p>
+    <ul>
+      <li>Text, links, and notes are transmitted through a WebSocket relay server to your other devices.</li>
+      <li>Files and images are never transmitted — they stay on your device.</li>
+      <li>The relay server is <strong>stateless</strong> — it does not store, log, or persist any data. Items are forwarded in real-time and immediately discarded.</li>
+      <li>Connections are grouped by a hash of your license key or sync code. The relay server never sees your actual license key.</li>
+      <li>Item size is capped at 1 MB (Free) or 5 MB (Pro) per item.</li>
+    </ul>
+    <p>Cloud Sync can be disabled at any time in Settings.</p>
+
+    <h2>Clipboard Access</h2>
+    <p>When clipboard capture is enabled, StowIt monitors your system clipboard to add copied text, links, and notes to your drop stack. You can pause clipboard capture at any time from the system tray menu. Clipboard data never leaves your device unless you explicitly share it via Cloud Sync, Zones, or Integrations.</p>
 
     <h2>Network Features</h2>
-    <p>StowIt includes optional network features that are disabled by default:</p>
+    <p>StowIt includes additional optional network features:</p>
     <ul>
-      <li><strong>LAN Zones</strong> — when enabled, discovers other StowIt instances on your local network using mDNS. Data shared to a zone is transmitted directly between devices on your local network. No data passes through external servers.</li>
+      <li><strong>LAN Zones</strong> — when enabled, discovers other StowIt instances on your local network using mDNS. Data shared to a zone is transmitted directly between devices on your local network.</li>
       <li><strong>REST API</strong> — when enabled, runs a local HTTP server accessible only on your machine or local network. Protected by a bearer token you control.</li>
       <li><strong>Integrations</strong> — when configured, StowIt can send drop data to services you specify (webhooks, Slack, Discord, Obsidian). Data is sent only to URLs you explicitly configure.</li>
     </ul>
@@ -93,17 +106,11 @@
     <h2>QR Code Transfer</h2>
     <p>The QR code feature runs a temporary local HTTP server on your device. The QR code points to your local IP address. No data is uploaded to any external service.</p>
 
-    <h2>Clipboard Access</h2>
-    <p>When clipboard capture is enabled, StowIt monitors your system clipboard to add copied items to your drop stack. This data never leaves your device unless you explicitly share it via Zones or Integrations.</p>
-
     <h2>Analytics and Tracking</h2>
     <p>StowIt does not include any analytics, telemetry, tracking pixels, or third-party SDKs. We do not collect usage data of any kind.</p>
 
     <h2>License Verification</h2>
     <p>Pro license verification is performed entirely offline using cryptographic validation. No network request is made to verify your license.</p>
-
-    <h2>Third-Party Services</h2>
-    <p>StowIt does not integrate with any third-party services unless you explicitly configure them in Settings. The application makes zero network requests by default.</p>
 
     <h2>Children's Privacy</h2>
     <p>StowIt does not collect any personal information from anyone, including children under 13.</p>
@@ -112,7 +119,7 @@
     <p>If we update this privacy policy, the changes will be posted on this page with an updated date.</p>
 
     <h2>Contact</h2>
-    <p>Questions about this policy? Contact us at <a href="mailto:mark@acornkc.com">mark@acornkc.com</a>.</p>
+    <p>Questions about this policy? Contact us at <a href="mailto:support@stowit.app">support@stowit.app</a>.</p>
   </div>
 </body>
 </html>
